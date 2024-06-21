@@ -1,0 +1,5 @@
+# WASM related files
+.vscode
+*.out
+*.wasm
+build
