@@ -26,12 +26,23 @@ void Bus::writeMemory(uint16_t address, uint8_t data)
     ram[address] = data;
 }
 
+void Bus::clearMemory()
+{
+    for (int i = 0; i < 0xFFFF; i++)
+    {
+        ram[i] = 0;
+    }
+}
+
 void Bus::loadProgram(std::vector<uint8_t> &program, uint16_t startAddress)
 {
     for (int i = 0; i < program.size(); i++)
     {
         ram[startAddress + i] = program[i];
     }
+    CPURegisters registers = cpu->getRegisters();
+    registers.PC = startAddress;
+    cpu->setRegisters(registers);
 }
 
 void Bus::run()

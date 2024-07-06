@@ -54,6 +54,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
         .constructor<>()
         .function("readMemory", &Bus::readMemory)
         .function("writeMemory", &Bus::writeMemory)
+        .function("clearMemory", &Bus::clearMemory)
         .function("loadProgram", &Bus::loadProgram)
         .function("run", &Bus::run);
 }

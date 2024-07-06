@@ -13,6 +13,7 @@ public:
 
     uint8_t readMemory(uint16_t address);
     void writeMemory(uint16_t address, uint8_t data);
+    void clearMemory();
     void loadProgram(std::vector<uint8_t> &program, uint16_t startAddress);
     void run();
     // int testVector(const std::vector<int> &program);
