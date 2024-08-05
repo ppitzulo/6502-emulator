@@ -120,6 +120,10 @@ CPURegisters CPU::getRegisters()
     return registers;
 }
 
+uint16_t CPU::getCycles() {
+  return cycles;
+}
+
 void CPU::reset()
 {
     registers.A = registers.X = registers.Y = 0;
@@ -279,9 +283,8 @@ uint16_t CPU::fetch()
     return operand;
 }
 
-void CPU::run()
+void CPU::step()
 {
-    // while (cycles < numCycles && !halted)
     if (!halted)
     {
         execute();

@@ -43,10 +43,11 @@ EMSCRIPTEN_BINDINGS(my_module) {
     // Bind CPU class
     class_<CPU>("CPU")
         .constructor<Bus&>()
-        .function("run", &CPU::run)
+        .function("step", &CPU::step)
         .function("reset", &CPU::reset)
         .function("setRegisters", &CPU::setRegisters)
         .function("getRegisters", &CPU::getRegisters)
+        .function("getCycles", &CPU::getCycles)
         .function("dissassemble", &CPU::dissassemble);
     
     // Bind Bus class if needed

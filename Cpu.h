@@ -44,9 +44,10 @@ class CPU
 public:
     CPU(Bus &bus);
     uint16_t operand;
-    void run();
+    void step();
     void reset();
     void setRegisters(CPURegisters registers);
+    uint16_t getCycles();
     DisassembledOpcode dissassemble(uint8_t opcode);
     void execute();
     CPURegisters getRegisters();

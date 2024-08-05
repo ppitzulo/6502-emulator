@@ -47,5 +47,5 @@ void Bus::loadProgram(std::vector<uint8_t> &program, uint16_t startAddress)
 
 void Bus::run()
 {
-    cpu->run();
+    cpu->step();
 }
