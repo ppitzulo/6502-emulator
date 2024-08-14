@@ -25,6 +25,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
         .field("overflowFlag", &CPURegisters::overflowFlag)
         .field("negativeFlag", &CPURegisters::negativeFlag)
         .field("PC", &CPURegisters::PC)
+        .field("CYC", &CPURegisters::cycles)
         .field("SP", &CPURegisters::SP);
     
     // Bind DisassembledOpcode struct
@@ -47,7 +48,6 @@ EMSCRIPTEN_BINDINGS(my_module) {
         .function("reset", &CPU::reset)
         .function("setRegisters", &CPU::setRegisters)
         .function("getRegisters", &CPU::getRegisters)
-        .function("getCycles", &CPU::getCycles)
         .function("dissassemble", &CPU::dissassemble);
     
     // Bind Bus class if needed

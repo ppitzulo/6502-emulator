@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdint>
 #include <bitset>
+#include <filesystem>
 #include "Cpu.h"
 #include "Bus.h"
 
@@ -88,7 +89,8 @@ protected:
 TEST_P(CpuTest, TestCpuRegisters)
 {
     std::string fileName = GetParam();
-    json tests = load_json("ProcessorTests/" + fileName);
+    std::string testFilePath = std::string(PROJECT_ROOT_DIR) + "/ProcessorTests/" + fileName;
+    json tests = load_json(testFilePath);
 
     for (json &test : tests)
     {
@@ -111,7 +113,7 @@ TEST_P(CpuTest, TestCpuRegisters)
         }
 
         cpu->setRegisters(registers);
-        cpu->run(test["cycles"].size()); // Execute one cycle to set perform the operation
+        cpu->step(); // Execute one cycle to set perform the operation
 
         registers = cpu->getRegisters();
 

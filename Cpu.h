@@ -21,7 +21,8 @@ struct CPURegisters
     bool overflowFlag;
     bool negativeFlag;
 
-    // Program Counter and Stack Pointer
+    // Program Counter, Cycles, and Stack Pointer
+    uint16_t cycles;
     uint16_t PC;
     uint8_t SP;
 };
@@ -54,7 +55,6 @@ public:
 
 private:
     CPURegisters registers;
-    uint16_t cycles;
     Bus &bus;
     bool halted = false;
     

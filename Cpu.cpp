@@ -120,10 +120,6 @@ CPURegisters CPU::getRegisters()
     return registers;
 }
 
-uint16_t CPU::getCycles() {
-  return cycles;
-}
-
 void CPU::reset()
 {
     registers.A = registers.X = registers.Y = 0;
@@ -141,7 +137,7 @@ void CPU::reset()
         registers.SP = 0xFF;
     }
     registers.interruptDisableFlag = true;
-    cycles = 0;
+    registers.cycles = 0;
 }
 
 void CPU::execute()
@@ -168,8 +164,9 @@ void CPU::execute()
     (this->*currentOpcode.handler)();
 
     // Add the number of cycles to the total number of cycles
-    cycles += opcodes[opcode].cycles;
+    registers.cycles += opcodes[opcode].cycles;
 }
+
 DisassembledOpcode CPU::dissassemble(uint8_t opcode)
 {
     DisassembledOpcode result;
@@ -215,17 +212,21 @@ DisassembledOpcode CPU::dissassemble(uint8_t opcode)
     else if (opcodes[opcode].addressing == &CPU::absolute)
     {
         result.addressingMode = "absolute";
-        operandStream << "$" << std::setw(2) << static_cast<int>(bus.readMemory(registers.PC + 1)) << std::setw(2) << static_cast<int>(bus.readMemory(registers.PC + 2));
+        uint16_t address = bus.readMemory(registers.PC + 1) | (bus.readMemory(registers.PC + 2) << 8);
+        // cout << " address: " << address << endl;
+        operandStream << "$" << std::setw(4) << address;
     }
     else if (opcodes[opcode].addressing == &CPU::absoluteX)
     {
         result.addressingMode = "absoluteX";
-        operandStream << "$" << std::setw(2) << static_cast<int>(bus.readMemory(registers.PC + 1)) << std::setw(2) << static_cast<int>(bus.readMemory(registers.PC + 2));
+        uint16_t address = bus.readMemory(registers.PC + 1) | (bus.readMemory(registers.PC + 2) << 8);
+        operandStream << "$" << std::setw(4) << address;
     }
     else if (opcodes[opcode].addressing == &CPU::absoluteY)
     {
         result.addressingMode = "absoluteY";
-        operandStream << "$" << std::setw(2) << static_cast<int>(bus.readMemory(registers.PC + 1)) << std::setw(2) << static_cast<int>(bus.readMemory(registers.PC + 2));
+        uint16_t address = bus.readMemory(registers.PC + 1) | (bus.readMemory(registers.PC + 2) << 8);
+        operandStream << "$" << std::setw(4) << address;
     }
     else if (opcodes[opcode].addressing == &CPU::indirectX)
     {
@@ -245,7 +246,8 @@ DisassembledOpcode CPU::dissassemble(uint8_t opcode)
     else if (opcodes[opcode].addressing == &CPU::indirect)
     {
         result.addressingMode = "indirect";
-        operandStream << "$" << std::setw(2) << static_cast<int>(bus.readMemory(registers.PC + 1)) << std::setw(2) << static_cast<int>(bus.readMemory(registers.PC + 2));
+        uint16_t address = bus.readMemory(registers.PC + 1) | (bus.readMemory(registers.PC + 2) << 8);
+        operandStream << "($" << std::setw(4) << address << ")";
     }
 
     uint8_t flags = 0;
@@ -427,11 +429,11 @@ uint8_t CPU::BCC()
 {
     if (!registers.carryFlag)
     {
-        cycles++;
+        registers.cycles++;
 
         if ((operand & 0xFF00) != (registers.PC & 0xFF00))
         {
-            cycles++;
+            registers.cycles++;
         }
 
         registers.PC = operand;
@@ -444,11 +446,11 @@ uint8_t CPU::BCS()
 {
     if (registers.carryFlag)
     {
-        cycles++;
+        registers.cycles++;
 
         if ((operand & 0xFF00) != (registers.PC & 0xFF00))
         {
-            cycles++;
+            registers.cycles++;
         }
 
         registers.PC = operand;
@@ -461,11 +463,11 @@ uint8_t CPU::BEQ()
 {
     if (registers.zeroFlag)
     {
-        cycles++;
+        registers.cycles++;
 
         if ((operand & 0xFF00) != (registers.PC & 0xFF00))
         {
-            cycles++;
+            registers.cycles++;
         }
 
         registers.PC = operand;
@@ -488,11 +490,11 @@ uint8_t CPU::BMI()
 {
     if (registers.negativeFlag)
     {
-        cycles++;
+        registers.cycles++;
         // Check if the branch is on the same page if not increment the number of cycles
         if ((operand & 0xFF00) != (registers.PC & 0xFF00))
         {
-            cycles++;
+            registers.cycles++;
         }
 
         registers.PC = operand;
@@ -505,12 +507,12 @@ uint8_t CPU::BNE()
 {
     if (!registers.zeroFlag)
     {
-        cycles++;
+        registers.cycles++;
 
         // Check if the branch is on the same page if not increment the number of cycles
         if ((operand & 0xFF00) != (registers.PC & 0xFF00))
         {
-            cycles++;
+            registers.cycles++;
         }
 
         registers.PC = operand;
@@ -523,12 +525,12 @@ uint8_t CPU::BPL()
 {
     if (!registers.negativeFlag)
     {
-        cycles++;
+        registers.cycles++;
 
         // Check if the branch is on the same page if not increment the number of cycles
         if ((operand & 0xFF00) != (registers.PC & 0xFF00))
         {
-            cycles++;
+            registers.cycles++;
         }
 
         registers.PC = operand;
@@ -557,11 +559,11 @@ uint8_t CPU::BVC()
 {
     if (!registers.overflowFlag)
     {
-        cycles++;
+        registers.cycles++;
         // Check if the branch is on the same page if not increment the number of cycles
         if ((operand & 0xFF00) != (registers.PC & 0xFF00))
         {
-            cycles++;
+            registers.cycles++;
         }
 
         registers.PC = operand;
@@ -574,11 +576,11 @@ uint8_t CPU::BVS()
 {
     if (registers.overflowFlag)
     {
-        cycles++;
+        registers.cycles++;
         // Check if the branch is on the same page if not increment the number of cycles
         if ((operand & 0xFF00) != (registers.PC & 0xFF00))
         {
-            cycles++;
+            registers.cycles++;
         }
 
         registers.PC = operand;
@@ -1212,7 +1214,7 @@ void CPU::absoluteX()
     // Check for page boundary crossing
     if ((effectiveAddress & 0xFF00) != (baseAddress & 0xFF00))
     {
-        cycles++;
+        registers.cycles++;
     }
 
     operand = effectiveAddress;
@@ -1232,7 +1234,7 @@ void CPU::absoluteY()
     // Check for page boundary crossing
     if ((effectiveAddress & 0xFF00) != (baseAddress & 0xFF00))
     {
-        cycles++;
+        registers.cycles++;
     }
 
     operand = effectiveAddress;
@@ -1300,7 +1302,7 @@ void CPU::indirectY()
 
     if ((indirectAddress & 0xFF00) != (effectiveAddress & 0xFF00))
     {
-        cycles++;
+        registers.cycles++;
     }
     
     // Construct the effective address.
